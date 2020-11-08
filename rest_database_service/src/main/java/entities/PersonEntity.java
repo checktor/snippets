@@ -1,8 +1,13 @@
 package entities;
 
+import resources.CommentResource;
+import resources.PersonResource;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Person")
@@ -11,8 +16,8 @@ public class PersonEntity implements Serializable {
 
     @Id
     @Column(name = "Id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @NotNull
     @Column(name = "FirstName", length = 200)
@@ -22,19 +27,28 @@ public class PersonEntity implements Serializable {
     @Column(name = "LastName", length = 200)
     private String lastName;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "PersonId")
+    private List<CommentEntity> comments;
+
     public PersonEntity() {
     }
 
-    public PersonEntity(@NotNull final String firstName, @NotNull final String lastName) {
-        this.setFirstName(firstName);
-        this.setLastName(lastName);
+    public PersonEntity(final PersonResource personResource) {
+        this.setId(personResource.getId());
+        this.setFirstName(personResource.getFirstName());
+        this.setLastName(personResource.getLastName());
+        this.setComments(new ArrayList<>());
+        for (CommentResource commentResource : personResource.getComments()) {
+            this.getComments().add(new CommentEntity(commentResource));
+        }
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(final long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -54,8 +68,12 @@ public class PersonEntity implements Serializable {
         this.lastName = lastName;
     }
 
-    @Override
-    public String toString() {
-        return String.format("{ id: %s, firstName: %s, lastName: %s }", this.getId(), this.getFirstName(), this.getLastName());
+    public List<CommentEntity> getComments() {
+        return comments;
     }
+
+    public void setComments(final List<CommentEntity> comments) {
+        this.comments = comments;
+    }
+
 }
